@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/QuickMind.Api/QuickMind.Api.csproj" />
+    <Project Path="src/QuickMind.Application/QuickMind.Application.csproj" />
+    <Project Path="src/QuickMind.Domain/QuickMind.Domain.csproj" />
+    <Project Path="src/QuickMind.Infrastructure/QuickMind.Infrastructure.csproj" />
+  </Folder>
+</Solution>
