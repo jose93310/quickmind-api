@@ -21,3 +21,7 @@ Thumbs.db
 ## Environment
 .env
 *.local
+
+## Test files with secrets
+test/
+test_connection.csx

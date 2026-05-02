@@ -83,4 +83,16 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
+// Inicializar base de datos
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbFactory = scope.ServiceProvider.GetRequiredService<IDbConnectionFactory>();
+    await DatabaseInitializer.InitializeAsync(dbFactory);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Inicialización de BD pendiente: {ex.Message}");
+}
+
 app.Run();
