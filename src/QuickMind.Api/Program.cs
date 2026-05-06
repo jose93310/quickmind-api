@@ -93,10 +93,8 @@ builder.Services.AddScoped<IStatsService, StatsService>();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// OpenAPI - disponible en todos los entornos
+app.MapOpenApi();
 
 app.UseCors("AllowFlutter");
 app.UseStaticFiles();
