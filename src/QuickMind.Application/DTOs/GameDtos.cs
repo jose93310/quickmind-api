@@ -7,7 +7,9 @@ public record CreateGameDto(
     int TimePerRound,
     int LetterMode,
     int ValidationType,
-    List<int> CategoryIds
+    List<int> CategoryIds,
+    bool IsPublic = false,
+    DateTime? ScheduledStart = null
 );
 
 public record JoinGameDto(
@@ -24,7 +26,9 @@ public record GameResponseDto(
     int TotalRounds,
     int TimePerRound,
     string? CurrentLetter,
-    List<PlayerInfoDto> Players
+    List<PlayerInfoDto> Players,
+    bool IsPublic = false,
+    DateTime? ScheduledStart = null
 );
 
 public record PlayerInfoDto(
@@ -55,4 +59,17 @@ public record CategoryDto(
     string DisplayName,
     int AgeGroup,
     string? Icon
+);
+
+public record PublicGameDto(
+    Guid Id,
+    string Code,
+    string HostNickname,
+    int Status,
+    int CurrentPlayers,
+    int MaxPlayers,
+    int TotalRounds,
+    int TimePerRound,
+    DateTime? ScheduledStart,
+    int MinutesUntilStart
 );

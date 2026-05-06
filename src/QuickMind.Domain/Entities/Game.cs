@@ -15,6 +15,8 @@ public class Game
     public DateTime CreatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? FinishedAt { get; set; }
+    public bool IsPublic { get; set; } = false;
+    public DateTime? ScheduledStart { get; set; }
 }
 
 public enum GameStatus

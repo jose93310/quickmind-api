@@ -51,13 +51,20 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<UserDto>> GetProfile(Guid userId)
     {
         var user = await _authService.GetUserByIdAsync(userId);
-        return user == null ? NotFound() : Ok(user);
+        return user == null ? NotFound(new { error = "Usuario no encontrado" }) : Ok(user);
     }
 
     [HttpPut("profile/{userId}")]
     public async Task<ActionResult<UserDto>> UpdateProfile(Guid userId, UpdateProfileDto dto)
     {
-        var user = await _authService.UpdateProfileAsync(userId, dto);
-        return Ok(user);
+        try
+        {
+            var user = await _authService.UpdateProfileAsync(userId, dto);
+            return Ok(user);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 }

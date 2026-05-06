@@ -30,15 +30,29 @@ public class GamesController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<GameResponseDto>> GetGame(Guid id)
     {
-        var game = await _gameService.GetGameAsync(id);
-        return Ok(game);
+        try
+        {
+            var game = await _gameService.GetGameAsync(id);
+            return Ok(game);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     [HttpGet("code/{code}")]
     public async Task<ActionResult<GameResponseDto>> GetGameByCode(string code)
     {
-        var game = await _gameService.GetGameByCodeAsync(code);
-        return Ok(game);
+        try
+        {
+            var game = await _gameService.GetGameByCodeAsync(code);
+            return Ok(game);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     [HttpPost("join")]
@@ -53,6 +67,10 @@ public class GamesController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     [HttpPost("{id}/start")]
@@ -61,19 +79,38 @@ public class GamesController : ControllerBase
         try
         {
             await _gameService.StartGameAsync(id, hostId);
-            return NoContent();
+            return Ok(new { message = "Partida iniciada correctamente", gameId = id });
         }
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
         }
     }
 
     [HttpPost("{id}/stop")]
     public async Task<ActionResult> StopRound(Guid id, [FromBody] Guid playerId)
     {
-        await _gameService.StopRoundAsync(id, playerId);
-        return NoContent();
+        try
+        {
+            await _gameService.StopRoundAsync(id, playerId);
+            return Ok(new { message = "Ronda detenida", gameId = id, stoppedBy = playerId });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     [HttpPost("answers")]
@@ -82,7 +119,7 @@ public class GamesController : ControllerBase
         try
         {
             await _gameService.SubmitAnswerAsync(dto);
-            return Ok();
+            return Ok(new { message = "Respuesta enviada correctamente" });
         }
         catch (InvalidOperationException ex)
         {
@@ -93,8 +130,15 @@ public class GamesController : ControllerBase
     [HttpPost("vote")]
     public async Task<ActionResult> Vote(VoteDto dto, [FromQuery] Guid voterId)
     {
-        await _gameService.VoteAnswerAsync(voterId, dto);
-        return Ok();
+        try
+        {
+            await _gameService.VoteAnswerAsync(voterId, dto);
+            return Ok(new { message = "Voto registrado correctamente" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
     }
 
     [HttpGet("categories")]
@@ -102,5 +146,12 @@ public class GamesController : ControllerBase
     {
         var categories = await _gameService.GetCategoriesAsync(ageGroup);
         return Ok(categories);
+    }
+
+    [HttpGet("public")]
+    public async Task<ActionResult<List<PublicGameDto>>> GetPublicGames()
+    {
+        var games = await _gameService.GetPublicGamesAsync();
+        return Ok(games);
     }
 }

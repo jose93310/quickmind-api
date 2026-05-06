@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: quickmind-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://0.0.0.0:8080
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: quickmind-api
+      - key: Jwt__Audience
+        value: quickmind-app
+    healthCheckPath: /api/health
+    autoDeploy: true

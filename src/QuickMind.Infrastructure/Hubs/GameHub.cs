@@ -5,6 +5,16 @@ namespace QuickMind.Infrastructure.Hubs;
 
 public class GameHub : Hub
 {
+    public async Task JoinUserGroup(string userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user_{userId}");
+    }
+
+    public async Task LeaveUserGroup(string userId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user_{userId}");
+    }
+
     public async Task JoinGame(string gameCode, PlayerInfoDto player)
     {
         await Groups.AddToGroupAsync(Context.ConnectionId, gameCode);
@@ -52,6 +62,13 @@ public interface IGameNotificationService
     Task NotifyAnswerSubmitted(string gameCode, Guid playerId, string category);
     Task NotifyRoundResultsReady(string gameCode);
     Task NotifyGameFinished(string gameCode, List<PlayerInfoDto> finalScores);
+    Task NotifyFriendRequestReceived(Guid receiverId, FriendRequestDto request);
+    Task NotifyFriendRequestResponded(Guid senderId, Guid requestId, bool accepted);
+    Task NotifyGameInviteReceived(Guid invitedUserId, GameInviteDto invite);
+    Task NotifyUserOnlineStatus(Guid userId, bool isOnline);
+    Task NotifyGameMessageReceived(Guid gameId, GameMessageDto message);
+    Task NotifyChatMessageReceived(Guid receiverId, ChatMessageDto message);
+    Task NotifyGameReaction(Guid gameId, GameReactionDto reaction);
 }
 
 public class GameNotificationService : IGameNotificationService
@@ -83,4 +100,25 @@ public class GameNotificationService : IGameNotificationService
 
     public async Task NotifyGameFinished(string gameCode, List<PlayerInfoDto> finalScores)
         => await _hubContext.Clients.Group(gameCode).SendAsync("GameFinished", finalScores);
+
+    public async Task NotifyFriendRequestReceived(Guid receiverId, FriendRequestDto request)
+        => await _hubContext.Clients.Group($"user_{receiverId}").SendAsync("FriendRequestReceived", request);
+
+    public async Task NotifyFriendRequestResponded(Guid senderId, Guid requestId, bool accepted)
+        => await _hubContext.Clients.Group($"user_{senderId}").SendAsync("FriendRequestResponded", requestId, accepted);
+
+    public async Task NotifyGameInviteReceived(Guid invitedUserId, GameInviteDto invite)
+        => await _hubContext.Clients.Group($"user_{invitedUserId}").SendAsync("GameInviteReceived", invite);
+
+    public async Task NotifyUserOnlineStatus(Guid userId, bool isOnline)
+        => await _hubContext.Clients.All.SendAsync("UserOnlineStatusChanged", userId, isOnline);
+
+    public async Task NotifyGameMessageReceived(Guid gameId, GameMessageDto message)
+        => await _hubContext.Clients.Group(gameId.ToString()).SendAsync("GameMessageReceived", message);
+
+    public async Task NotifyChatMessageReceived(Guid receiverId, ChatMessageDto message)
+        => await _hubContext.Clients.Group($"user_{receiverId}").SendAsync("ChatMessageReceived", message);
+
+    public async Task NotifyGameReaction(Guid gameId, GameReactionDto reaction)
+        => await _hubContext.Clients.Group(gameId.ToString()).SendAsync("GameReactionReceived", reaction);
 }

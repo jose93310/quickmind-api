@@ -53,6 +53,24 @@ public class UserRepository : IUserRepository
         return await conn.QueryFirstOrDefaultAsync<User>(sql, new { Nickname = nickname });
     }
 
+    public async Task<IEnumerable<User>> SearchByNicknameAsync(string query, Guid excludeUserId, int limit = 20)
+    {
+        using var conn = await _connectionFactory.CreateConnectionAsync();
+        const string sql =
+            """
+            SELECT id, email, nickname, name, country, city, birth_date AS BirthDate,
+                   gender, avatar_path AS AvatarPath, password_hash AS PasswordHash,
+                   is_guest AS IsGuest, created_at AS CreatedAt
+            FROM users 
+            WHERE nickname ILIKE @Query 
+              AND id != @ExcludeUserId
+              AND is_guest = false
+            ORDER BY nickname
+            LIMIT @Limit
+            """;
+        return await conn.QueryAsync<User>(sql, new { Query = $"%{query}%", ExcludeUserId = excludeUserId, Limit = limit });
+    }
+
     public async Task<User> CreateAsync(User user)
     {
         using var conn = await _connectionFactory.CreateConnectionAsync();

@@ -63,7 +63,9 @@ public class GameService : IGameService
             TimePerRound = dto.TimePerRound,
             LetterMode = (LetterMode)dto.LetterMode,
             ValidationType = (ValidationType)dto.ValidationType,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            IsPublic = dto.IsPublic,
+            ScheduledStart = dto.ScheduledStart
         };
 
         await _gameRepo.CreateAsync(game);
@@ -211,6 +213,42 @@ public class GameService : IGameService
         await _voteRepo.CreateAsync(vote);
     }
 
+    public async Task<List<PublicGameDto>> GetPublicGamesAsync()
+    {
+        // Buscar partidas públicas en las próximas 2 horas o en curso
+        var maxTime = DateTime.UtcNow.AddHours(2);
+        var games = await _gameRepo.GetPublicGamesAsync(maxTime);
+        
+        var result = new List<PublicGameDto>();
+        
+        foreach (var game in games)
+        {
+            var host = await _userRepo.GetByIdAsync(game.HostId);
+            var playerCount = await _playerRepo.GetPlayerCountAsync(game.Id);
+            
+            int minutesUntilStart = 0;
+            if (game.ScheduledStart.HasValue)
+            {
+                minutesUntilStart = (int)(game.ScheduledStart.Value - DateTime.UtcNow).TotalMinutes;
+            }
+            
+            result.Add(new PublicGameDto(
+                game.Id,
+                game.Code,
+                host?.Nickname ?? "Desconocido",
+                (int)game.Status,
+                playerCount,
+                game.MaxPlayers,
+                game.TotalRounds,
+                game.TimePerRound,
+                game.ScheduledStart,
+                minutesUntilStart
+            ));
+        }
+        
+        return result;
+    }
+
     public async Task<List<CategoryDto>> GetCategoriesAsync(int? ageGroup = null)
     {
         IEnumerable<Category> categories;
@@ -260,6 +298,8 @@ public class GameService : IGameService
             game.CurrentRound, game.TotalRounds, game.TimePerRound,
             null,
             players.Select(p => new PlayerInfoDto(
-                p.Id, p.UserId, p.Nickname, p.AvatarPath, p.Score, p.IsHost, p.IsOnline)).ToList());
+                p.Id, p.UserId, p.Nickname, p.AvatarPath, p.Score, p.IsHost, p.IsOnline)).ToList(),
+            game.IsPublic,
+            game.ScheduledStart);
     }
 }

@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers + OpenAPI
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi("v1");
 
 // CORS para Flutter
 builder.Services.AddCors(options =>
@@ -27,10 +27,11 @@ builder.Services.AddCors(options =>
 // SignalR para tiempo real
 builder.Services.AddSignalR();
 
-// PostgreSQL + Dapper
+// PostgreSQL + Dapper - Lee de variables de entorno o appsettings
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
 builder.Services.AddSingleton<IDbConnectionFactory>(_ =>
-    new NpgsqlConnectionFactory(
-        builder.Configuration.GetConnectionString("DefaultConnection")!));
+    new NpgsqlConnectionFactory(connectionString));
 
 // JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"]!;
@@ -65,9 +66,30 @@ builder.Services.AddScoped<IAnswerRepository, AnswerRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IRoundVoteRepository, RoundVoteRepository>();
 
+// Repositorios de amigos
+builder.Services.AddScoped<IFriendRepository, FriendRepository>();
+builder.Services.AddScoped<IFriendRequestRepository, FriendRequestRepository>();
+
 // Servicios de juego
 builder.Services.AddScoped<IGameNotificationService, GameNotificationService>();
 builder.Services.AddScoped<IGameService, GameService>();
+
+// Repositorios de chat
+builder.Services.AddScoped<IGameMessageRepository, GameMessageRepository>();
+builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+
+// Servicios de amigos
+builder.Services.AddScoped<IFriendService, FriendService>();
+
+// Servicios de chat
+builder.Services.AddScoped<IChatService, ChatService>();
+
+// Repositorios de stats
+builder.Services.AddScoped<IStatsRepository, StatsRepository>();
+builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
+
+// Servicios de stats
+builder.Services.AddScoped<IStatsService, StatsService>();
 
 var app = builder.Build();
 
@@ -77,11 +99,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFlutter");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
+
+// Health check endpoint
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
 // Inicializar base de datos
 try

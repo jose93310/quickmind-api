@@ -12,5 +12,6 @@ public interface IGameService
     Task VoteAnswerAsync(Guid voterId, VoteDto dto);
     Task<GameResponseDto> GetGameAsync(Guid gameId);
     Task<GameResponseDto> GetGameByCodeAsync(string code);
+    Task<List<PublicGameDto>> GetPublicGamesAsync();
     Task<List<CategoryDto>> GetCategoriesAsync(int? ageGroup = null);
 }
