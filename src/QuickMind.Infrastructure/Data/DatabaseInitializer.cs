@@ -145,6 +145,12 @@ public static class DatabaseInitializer
             """;
         await conn.ExecuteAsync(migration9);
 
+        // Migration: Add name column to games table
+        const string migration10_name = """
+            ALTER TABLE games ADD COLUMN IF NOT EXISTS name VARCHAR(100);
+            """;
+        await conn.ExecuteAsync(migration10_name);
+
         // Migration: Create player_stats table
         const string migration10 = """
             CREATE TABLE IF NOT EXISTS player_stats (

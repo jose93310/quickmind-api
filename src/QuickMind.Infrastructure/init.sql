@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS games (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code VARCHAR(6) UNIQUE NOT NULL,
     host_id UUID REFERENCES users(id),
+    name VARCHAR(100),
     status INTEGER NOT NULL DEFAULT 0,
     max_players INTEGER DEFAULT 8,
     total_rounds INTEGER NOT NULL,

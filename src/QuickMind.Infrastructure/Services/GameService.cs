@@ -56,6 +56,7 @@ public class GameService : IGameService
             Id = Guid.NewGuid(),
             Code = GenerateCode(),
             HostId = dto.HostId,
+            Name = dto.Name,
             Status = GameStatus.Waiting,
             MaxPlayers = dto.MaxPlayers,
             TotalRounds = dto.TotalRounds,
@@ -235,7 +236,9 @@ public class GameService : IGameService
             result.Add(new PublicGameDto(
                 game.Id,
                 game.Code,
+                game.HostId,
                 host?.Nickname ?? "Desconocido",
+                game.Name,
                 (int)game.Status,
                 playerCount,
                 game.MaxPlayers,
@@ -291,10 +294,34 @@ public class GameService : IGameService
         return letters[Random.Shared.Next(letters.Length)].ToString();
     }
 
+    public async Task<GameResponseDto> UpdateGameSettingsAsync(Guid gameId, Guid hostId, CreateGameDto dto)
+    {
+        var game = await _gameRepo.GetByIdAsync(gameId)
+            ?? throw new KeyNotFoundException("Partida no encontrada");
+
+        if (game.HostId != hostId)
+            throw new UnauthorizedAccessException("Solo el host puede editar la partida");
+
+        if (game.Status != GameStatus.Waiting)
+            throw new InvalidOperationException("Solo se puede editar partidas en espera");
+
+        game.Name = dto.Name;
+        game.MaxPlayers = dto.MaxPlayers;
+        game.TotalRounds = dto.TotalRounds;
+        game.TimePerRound = dto.TimePerRound;
+        game.IsPublic = dto.IsPublic;
+        game.ScheduledStart = dto.ScheduledStart;
+
+        await _gameRepo.UpdateSettingsAsync(game);
+
+        var players = await _playerRepo.GetByGameIdAsync(gameId);
+        return MapToResponse(game, players);
+    }
+
     private static GameResponseDto MapToResponse(Game game, IEnumerable<Player> players)
     {
         return new GameResponseDto(
-            game.Id, game.Code, game.HostId, (int)game.Status,
+            game.Id, game.Code, game.HostId, game.Name, (int)game.Status,
             game.CurrentRound, game.TotalRounds, game.TimePerRound,
             null,
             players.Select(p => new PlayerInfoDto(

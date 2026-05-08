@@ -5,6 +5,7 @@ public class Game
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty;
     public Guid HostId { get; set; }
+    public string? Name { get; set; }
     public GameStatus Status { get; set; }
     public int MaxPlayers { get; set; } = 8;
     public int TotalRounds { get; set; }

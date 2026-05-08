@@ -14,4 +14,5 @@ public interface IGameService
     Task<GameResponseDto> GetGameByCodeAsync(string code);
     Task<List<PublicGameDto>> GetPublicGamesAsync();
     Task<List<CategoryDto>> GetCategoriesAsync(int? ageGroup = null);
+    Task<GameResponseDto> UpdateGameSettingsAsync(Guid gameId, Guid hostId, CreateGameDto dto);
 }

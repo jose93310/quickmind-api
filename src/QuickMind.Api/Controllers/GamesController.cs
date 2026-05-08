@@ -154,4 +154,26 @@ public class GamesController : ControllerBase
         var games = await _gameService.GetPublicGamesAsync();
         return Ok(games);
     }
+
+    [HttpPut("{id}/settings")]
+    public async Task<ActionResult<GameResponseDto>> UpdateGameSettings(Guid id, CreateGameDto dto, [FromQuery] Guid hostId)
+    {
+        try
+        {
+            var game = await _gameService.UpdateGameSettingsAsync(id, hostId, dto);
+            return Ok(game);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
+        }
+    }
 }

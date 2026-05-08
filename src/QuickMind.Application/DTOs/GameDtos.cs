@@ -9,7 +9,8 @@ public record CreateGameDto(
     int ValidationType,
     List<int> CategoryIds,
     bool IsPublic = false,
-    DateTime? ScheduledStart = null
+    DateTime? ScheduledStart = null,
+    string? Name = null
 );
 
 public record JoinGameDto(
@@ -21,6 +22,7 @@ public record GameResponseDto(
     Guid Id,
     string Code,
     Guid HostId,
+    string? Name,
     int Status,
     int CurrentRound,
     int TotalRounds,
@@ -64,7 +66,9 @@ public record CategoryDto(
 public record PublicGameDto(
     Guid Id,
     string Code,
+    Guid HostId,
     string HostNickname,
+    string? Name,
     int Status,
     int CurrentPlayers,
     int MaxPlayers,

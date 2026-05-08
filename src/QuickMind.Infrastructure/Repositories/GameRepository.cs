@@ -19,7 +19,7 @@ public class GameRepository : IGameRepository
         using var conn = await _connectionFactory.CreateConnectionAsync();
         const string sql =
             """
-            SELECT id, code, host_id AS HostId, status, max_players AS MaxPlayers,
+            SELECT id, code, host_id AS HostId, name, status, max_players AS MaxPlayers,
                    total_rounds AS TotalRounds, current_round AS CurrentRound,
                    time_per_round AS TimePerRound, letter_mode AS LetterMode,
                    validation_type AS ValidationType, created_at AS CreatedAt,
@@ -35,7 +35,7 @@ public class GameRepository : IGameRepository
         using var conn = await _connectionFactory.CreateConnectionAsync();
         const string sql =
             """
-            SELECT id, code, host_id AS HostId, status, max_players AS MaxPlayers,
+            SELECT id, code, host_id AS HostId, name, status, max_players AS MaxPlayers,
                    total_rounds AS TotalRounds, current_round AS CurrentRound,
                    time_per_round AS TimePerRound, letter_mode AS LetterMode,
                    validation_type AS ValidationType, created_at AS CreatedAt,
@@ -51,7 +51,7 @@ public class GameRepository : IGameRepository
         using var conn = await _connectionFactory.CreateConnectionAsync();
         const string sql =
             """
-            SELECT id, code, host_id AS HostId, status, max_players AS MaxPlayers,
+            SELECT id, code, host_id AS HostId, name, status, max_players AS MaxPlayers,
                    total_rounds AS TotalRounds, current_round AS CurrentRound,
                    time_per_round AS TimePerRound, letter_mode AS LetterMode,
                    validation_type AS ValidationType, created_at AS CreatedAt,
@@ -67,7 +67,7 @@ public class GameRepository : IGameRepository
         using var conn = await _connectionFactory.CreateConnectionAsync();
         const string sql =
             """
-            SELECT g.id, g.code, g.host_id AS HostId, g.status, g.max_players AS MaxPlayers,
+            SELECT g.id, g.code, g.host_id AS HostId, g.name, g.status, g.max_players AS MaxPlayers,
                    g.total_rounds AS TotalRounds, g.current_round AS CurrentRound,
                    g.time_per_round AS TimePerRound, g.letter_mode AS LetterMode,
                    g.validation_type AS ValidationType, g.created_at AS CreatedAt,
@@ -79,7 +79,7 @@ public class GameRepository : IGameRepository
             WHERE g.is_public = true 
               AND g.status IN (0, 1)
               AND (g.scheduled_start IS NULL OR g.scheduled_start <= @MaxScheduledTime)
-            GROUP BY g.id, g.code, g.host_id, g.status, g.max_players,
+            GROUP BY g.id, g.code, g.host_id, g.name, g.status, g.max_players,
                      g.total_rounds, g.current_round, g.time_per_round, 
                      g.letter_mode, g.validation_type, g.created_at,
                      g.started_at, g.finished_at, g.is_public, g.scheduled_start
@@ -96,10 +96,10 @@ public class GameRepository : IGameRepository
         using var conn = await _connectionFactory.CreateConnectionAsync();
         const string sql =
             """
-            INSERT INTO games (id, code, host_id, status, max_players, total_rounds,
+            INSERT INTO games (id, code, host_id, name, status, max_players, total_rounds,
                                current_round, time_per_round, letter_mode, validation_type, 
                                created_at, is_public, scheduled_start)
-            VALUES (@Id, @Code, @HostId, @Status, @MaxPlayers, @TotalRounds,
+            VALUES (@Id, @Code, @HostId, @Name, @Status, @MaxPlayers, @TotalRounds,
                     @CurrentRound, @TimePerRound, @LetterMode, @ValidationType, 
                     @CreatedAt, @IsPublic, @ScheduledStart)
             RETURNING id
@@ -115,6 +115,19 @@ public class GameRepository : IGameRepository
             """
             UPDATE games SET status = @Status, current_round = @CurrentRound,
                              started_at = @StartedAt, finished_at = @FinishedAt,
+                             is_public = @IsPublic, scheduled_start = @ScheduledStart
+            WHERE id = @Id
+            """;
+        await conn.ExecuteAsync(sql, game);
+    }
+
+    public async Task UpdateSettingsAsync(Game game)
+    {
+        using var conn = await _connectionFactory.CreateConnectionAsync();
+        const string sql =
+            """
+            UPDATE games SET name = @Name, max_players = @MaxPlayers,
+                             total_rounds = @TotalRounds, time_per_round = @TimePerRound,
                              is_public = @IsPublic, scheduled_start = @ScheduledStart
             WHERE id = @Id
             """;

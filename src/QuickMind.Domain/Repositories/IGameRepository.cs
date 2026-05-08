@@ -10,5 +10,6 @@ public interface IGameRepository
     Task<IEnumerable<Game>> GetPublicGamesAsync(DateTime maxScheduledTime);
     Task<Game> CreateAsync(Game game);
     Task UpdateAsync(Game game);
+    Task UpdateSettingsAsync(Game game);
     Task DeleteAsync(Guid id);
 }
